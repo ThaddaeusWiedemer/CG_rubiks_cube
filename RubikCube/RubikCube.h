@@ -78,11 +78,11 @@ struct Layer{
 
 struct Rotation{
 	bool first; // 
-	int ax_ind; // the index of axis 旋转轴的索引值
-	int layerY; // the index of layer in the axis 在该旋转轴上，旋转层的索引值
-	bool anti_clock; // clockwise 是否逆时针旋转
-	GLfloat offset; // offset of rotating 单次调用旋转函数旋转的角度
-	GLfloat ang_roted; // angle of rotating 逆时针旋转角度（若为顺时针旋转，取负）
+	int ax_ind; // the index of axis
+	int layerY; // the index of layer in the axis
+	bool anti_clock; // clockwise
+	GLfloat offset; // offset of rotating
+	GLfloat ang_roted; // angle of rotating
 
 	Rotation(): first(true), ax_ind(0), layerY(0), anti_clock(true), offset(0.0f), ang_roted(0.0f) {}
 	void change( int ax_ind, int layerY, bool anti_clock, GLfloat offset ){

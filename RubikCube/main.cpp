@@ -110,25 +110,18 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
-	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
+	if(key == GLFW_KEY_Z && action == GLFW_PRESS){
+		rubikCube.Track_back();
+	}
 	if(key >= 0 && key < 1024){
 		if(action == GLFW_PRESS)
 			keys[key] = true;
 		else if(action == GLFW_RELEASE)
 			keys[key] = false;
 	}
-	/*return;//with bugs;
-	if( action == GLFW_PRESS ){
-		switch(key){
-		case GLFW_KEY_Z:
-			rubikCube.Track_back(); //press z to track back
-			break;
-		case GLFW_KEY_ESCAPE:
-			glfwSetWindowShouldClose(window, GL_TRUE);
-			break;
-		}
-	}*/
 }
 
 void mouse_click_callback(GLFWwindow* window, int button, int action, int mode){
