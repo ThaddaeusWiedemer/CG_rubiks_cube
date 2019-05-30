@@ -19,7 +19,7 @@ GLfloat lastX = 400, lastY = 400;
 // Window dimensions
 GLfloat WIDTH = 800, HEIGHT = 800;
 // viewport
-GLfloat wid_view = min(WIDTH, HEIGHT);
+GLfloat wid_view = std::fminf(WIDTH, HEIGHT);
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -27,8 +27,7 @@ glm::mat4 view(1);
 glm::mat4 projection(1);
 bool keys[1024];
 
-void myDisplay(GLFWwindow* window, Shader ourShader)
-{
+void myDisplay(GLFWwindow* window, Shader ourShader){
 	// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 	glfwPollEvents();
 	
@@ -57,13 +56,12 @@ void myDisplay(GLFWwindow* window, Shader ourShader)
 }
 
 // The MAIN function, from here we start the application and run the game loop
-int main()
-{
+int main(){
     // Init GLFW
     glfwInit();
     // Set all the required options for GLFW
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -81,7 +79,7 @@ int main()
     glfwSetScrollCallback(window, scroll_callback);
     
     // Initialize GLAD to setup the OpenGL Function pointers
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
@@ -95,29 +93,34 @@ int main()
 	rubikCube.set_BA_obj(); // set VAO,VBO,EBO
 
     // Game loop
-    while (!glfwWindowShouldClose(window))
-		myDisplay(window,ourShader);
+	while(!glfwWindowShouldClose(window)){
+		myDisplay(window, ourShader);
+	}
 
     // Terminate GLFW, clearing any resources allocated by GLFW.
     glfwTerminate();
 	return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     WIDTH = width;
     HEIGHT = height;
     glViewport(0, 0, width, height);
 }
 
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-	return;//with bugs;
-	if( action == GLFW_PRESS )
-	{
-		switch(key)
-		{
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	if(key >= 0 && key < 1024){
+		if(action == GLFW_PRESS)
+			keys[key] = true;
+		else if(action == GLFW_RELEASE)
+			keys[key] = false;
+	}
+	/*return;//with bugs;
+	if( action == GLFW_PRESS ){
+		switch(key){
 		case GLFW_KEY_Z:
 			rubikCube.Track_back(); //press z to track back
 			break;
@@ -125,24 +128,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			glfwSetWindowShouldClose(window, GL_TRUE);
 			break;
 		}
-	}
-    if (key >= 0 && key < 1024)
-    {
-        if (action == GLFW_PRESS)
-            keys[key] = true;
-        else if (action == GLFW_RELEASE)
-            keys[key] = false;
-    }	
+	}*/
 }
 
-void mouse_click_callback(GLFWwindow* window, int button, int action, int mode)
-{
-	if(button == GLFW_MOUSE_BUTTON_LEFT)
-	{
-		if( !rightmouse ) 
-		{
-			switch(action)
-			{
+void mouse_click_callback(GLFWwindow* window, int button, int action, int mode){
+	if(button == GLFW_MOUSE_BUTTON_LEFT){
+		if(!rightmouse) {
+			switch(action){
 			case GLFW_PRESS:
 				leftmouse = true;
 				rubikCube.Note_state(button);
@@ -152,13 +144,9 @@ void mouse_click_callback(GLFWwindow* window, int button, int action, int mode)
 				break;
 			}
 		}
-	}
-	else if(button ==  GLFW_MOUSE_BUTTON_RIGHT)
-	{
-		if( !leftmouse ) 
-		{
-			switch(action)
-			{
+	}else if(button ==  GLFW_MOUSE_BUTTON_RIGHT){
+		if(!leftmouse){
+			switch(action){
 			case GLFW_PRESS:
 				rightmouse = true;
 				rubikCube.Note_state(button);
@@ -175,16 +163,12 @@ void mouse_click_callback(GLFWwindow* window, int button, int action, int mode)
 	
 }
 
-void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	if (firstmouse) 
-        firstmouse = false;			
-    else if( leftmouse )
-	{
-		rubikCube.Mouse_LeftMove(xpos, lastX, ypos, lastY);
-	}
-	else if( rightmouse )
-	{
+void mouse_move_callback(GLFWwindow* window, double xpos, double ypos){
+	if(firstmouse){
+		firstmouse = false;
+	}else if(leftmouse){
+		rubikCube.Mouse_LeftMove(xpos, lastX, ypos, lastY, WIDTH, HEIGHT, view);
+	}else if(rightmouse){
 		GLfloat xoffset = xpos - lastX;
 		GLfloat yoffset = lastY - ypos; // Reversed	
 		rubikCube.Mouse_RightMove(xoffset, yoffset, view, projection, camera.Zoom, wid_view);
@@ -194,8 +178,7 @@ void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
 	lastY = ypos;
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 	GLfloat wid_old = wid_view;
 	wid_view += yoffset * 20;
 	rubikCube.MouseSensitivity *= wid_old / wid_view; 
