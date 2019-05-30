@@ -307,8 +307,6 @@ void RubikCube::Mouse_RightMove(GLfloat xoffset, GLfloat yoffset, glm::mat4 view
 		return;
 	}
 	int i=cube_selected.x, j=cube_selected.y, k=cube_selected.z;
-	cout << "layers " << magicCube[i][j][k].layer[0] << "\t" << magicCube[i][j][k].layer[1] << "\t" << magicCube[i][j][k].layer[2] 
-		 << "\tindices " << magicCube[i][j][k].lay_ind[0] << "\t" << magicCube[i][j][k].lay_ind[1] << "\t" << magicCube[i][j][k].lay_ind[2] << endl;
 	glm::vec4 v_sel4 = glm::vec4( magicCube[i][j][k].center.x, magicCube[i][j][k].center.y, magicCube[i][j][k].center.z, 1.0f ); // the selected vertex
 	glm::vec3 v_sel3 = glm::vec3(model * magicCube[i][j][k].m_cube * v_sel4);
 	Vector3D radius(v_sel3); // calculate the initial rotation radius
@@ -372,7 +370,7 @@ void RubikCube::Release_Cube(){ // when the rotation of sub_cubes done
 
 	Track_back(); // 
 
-	// transform into discreitsed, counterclockwise rotation
+	// transform into discretised, counterclockwise rotation
 	rotation.ang_roted = (int)rotation.ang_roted % 360;
 	if(rotation.ang_roted < 0){
 		rotation.ang_roted += 360.f;
@@ -408,60 +406,27 @@ void RubikCube::Release_Cube(){ // when the rotation of sub_cubes done
 
 // updates the affiliation of subcubes to the layers and the layer reference in each subcube
 void RubikCube::RotateFinish(){
-	// make copy of subcube data (use vector, as it automatically handles memory allocation)
-	vector<vector<vector<int>>> sub_cube_data(9, vector<vector<int>>(2, vector<int>(3)));
+	// make copy of subcube data (use vectors, as they automatically handle memory allocation)
+	vector<vector<vector<int>>> sub_cube_data(8, vector<vector<int>>(2, vector<int>(3)));
+	vector<Cube*> sub_cubes(8);
 	for(int i = 0; i < 8; i++){
-		Cube* sub_cube = layers[rotation.ax_ind][rotation.layerY].cubes[i];
+		sub_cubes[i] = layers[rotation.ax_ind][rotation.layerY].cubes[i];
 		for(int j = 0; j < 3; j++){
-			sub_cube_data[i][0][j] = sub_cube->layer[j];
-			sub_cube_data[i][1][j] = sub_cube->lay_ind[j];
+			sub_cube_data[i][0][j] = sub_cubes[i]->layer[j];
+			sub_cube_data[i][1][j] = sub_cubes[i]->lay_ind[j];
 		}
 	}
 
-	// update subcube internal data
-	switch((int) rotation.ang_roted){
-	case 90:
-		// move all cubes on the outer ring 2 positions counterclockwise
-		for(int i = 0; i < 8; i++){
-			Cube* sub_cube = layers[rotation.ax_ind][rotation.layerY].cubes[i];
-			for(int j = 0; j < 3; j++){
-				sub_cube->layer[j] = sub_cube_data[(i + 2) % 8][0][j];
-				sub_cube->lay_ind[j] = sub_cube_data[(i + 2) % 8][1][j];
-			}
-		}
-		break;
-	case 180:
-		// move all cubes on the outer ring 4 positions clockwise (mirror over centre)
-		for(int i = 0; i < 8; i++){
-			Cube* sub_cube = layers[rotation.ax_ind][rotation.layerY].cubes[i];
-			for(int j = 0; j < 3; j++){
-				sub_cube->layer[j] = sub_cube_data[(i + 4) % 8][0][j]; // +6 is equal to -2 in %8 space
-				sub_cube->lay_ind[j] = sub_cube_data[(i + 4) % 8][1][j];
-			}
-		}
-		break;
-	case 270:
-		// move all cubes on the outer ring 2 positions clockwise
-		for(int i = 0; i < 8; i++){
-			Cube* sub_cube = layers[rotation.ax_ind][rotation.layerY].cubes[i];
-			for(int j = 0; j < 3; j++){
-				sub_cube->layer[j] = sub_cube_data[(i + 6) % 8][0][j]; // +6 is equal to -2 in %8 space
-				sub_cube->lay_ind[j] = sub_cube_data[(i + 6) % 8][1][j];
-			}
-		}
-		break;
-	}
-
-	// update layers based on updated subcube data
-	for(int i = 0; i < 3; i++){
+	for(int i = 0; i < 8; i++){
+		// move all cubes on the outer ring x positions counterclockwise
 		for(int j = 0; j < 3; j++){
-			for(int k = 0; k < 3; k++){
-				Cube* sub_cube = &magicCube[i][j][k];
-				layers[0][sub_cube->layer[0]].cubes[sub_cube->lay_ind[0]] = sub_cube;
-				layers[1][sub_cube->layer[1]].cubes[sub_cube->lay_ind[1]] = sub_cube;
-				layers[2][sub_cube->layer[2]].cubes[sub_cube->lay_ind[2]] = sub_cube;
-			}
+			sub_cubes[i]->layer[j] = sub_cube_data[(i + (int)rotation.ang_roted / 45) % 8][0][j];
+			sub_cubes[i]->lay_ind[j] = sub_cube_data[(i + (int)rotation.ang_roted / 45) % 8][1][j];
 		}
+		// update layers based on updated subcube data
+		layers[0][sub_cubes[i]->layer[0]].cubes[sub_cubes[i]->lay_ind[0]] = sub_cubes[i];
+		layers[1][sub_cubes[i]->layer[1]].cubes[sub_cubes[i]->lay_ind[1]] = sub_cubes[i];
+		layers[2][sub_cubes[i]->layer[2]].cubes[sub_cubes[i]->lay_ind[2]] = sub_cubes[i];
 	}
 }
 
